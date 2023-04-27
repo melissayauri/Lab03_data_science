@@ -81,13 +81,24 @@ code501_users
 # Hallando el n° de repeticiones según el método GET, POST, HEAD (columna Method)
 method_frequency <- table(server_data$Method)
 # Mostrando la tabla de frecuencia según el método
-method_data <- data.frame(method = names(method_frequency), method_frequency = as.vector(method_frequency))
+method_data <- data.frame(method = names(method_frequency), Frequency = as.vector(method_frequency))
 # Muestra de los resultados
 print(method_data)
 # Método GET (46020 repeticiones)
 # Método HEAD (106 repeticiones)
 # Método POST (1622 repeticiones)
 
-
+# Hallando el n° de repeticiones descartando los recursos tipo imagen
+# Filtrando los recursos que no contengan extensiones tipo imagen, discriminando mayúsculas y minusculas de las extensiones
+noimages_data <- filter(server_data, !grepl("(?i)\\.(gif|jpg|jpeg|png|bmp)$", Resource))
+# Hallando el n° de repeticiones del filtro anterior
+method_frequency2 <- table(noimages_data$Method)
+# Mostrando la tabla
+method2_data <- data.frame(Method = names(method_frequency2), Frequency = as.vector(method_frequency2))
+# Muestra de los resultados
+print(method2_data)
+# GET     46020
+# HEAD       106
+# POST      1622
 
 View(server_data)
