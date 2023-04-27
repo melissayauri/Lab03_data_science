@@ -77,7 +77,16 @@ code501_users <- nrow(data_code_501)
 code501_users
 # Hay 11 usuarios con el código de respuesta 501
 
-
+# Pregunta 3
+# Hallando el n° de repeticiones según el método GET, POST, HEAD (columna Method)
+method_frequency <- table(server_data$Method)
+# Mostrando la tabla de frecuencia según el método
+method_data <- data.frame(method = names(method_frequency), method_frequency = as.vector(method_frequency))
+# Muestra de los resultados
+print(method_data)
+# Método GET (46020 repeticiones)
+# Método HEAD (106 repeticiones)
+# Método POST (1622 repeticiones)
 
 
 
