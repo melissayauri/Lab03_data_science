@@ -149,6 +149,31 @@ ggplot(requests_data, aes(x = Method, y = Frequency, color = Response_code)) +
   scale_color_manual(values=c("#f70a71", "#c90a02", "#ffb145", "#74ab90", "#3a89c9","#1b325f","#f26c4f","#63203d"), 
                      labels=c("200", "302","304","400","403","404", "500", "501"))
 
+# Pregunta 5
+# Creando nueva columna con el número de carácteres de la columna Resource
+server_data$length_Resource <-  str_length(server_data$Resource)
+# Creando una nueva tabla con las columnas tipo factor
+endpoints_data <- server_data[, c("Method", "Response_code", "Protocol")]
+# Convirtiendo datos tipo factor a datos binarios
+one_hot_data <- one_hot(as.data.table(endpoints_data), sparsifyNAs = TRUE)
+# Obteniendo el kmeans
+value7_kmeans <- kmeans(one_hot_data, centers = 7)
+value4_kmeans <- kmeans(one_hot_data, centers = 4)
+#pregunta 6
+# Agrupamiento de 7
+server_data$clusters_7 <- as.factor(value7_kmeans$cluster)
+
+# Gráfica en base a la columna bytes y length_Resource
+ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_7)) +
+  geom_point() +
+  scale_x_continuous(labels = function(x) as.integer(floor(x)))
+
+# Agrupamiento de 4
+server_data$clusters_4 <- as.factor(value4_kmeans$cluster)
+# Gráfica en base a la columna bytes y length_Resource
+ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_4)) +
+  geom_point() +
+  scale_x_continuous(labels = function(x) as.integer(floor(x)))
 
 
 View(server_data)
