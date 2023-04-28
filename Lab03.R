@@ -175,5 +175,10 @@ ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_4)) +
   geom_point() +
   scale_x_continuous(labels = function(x) as.integer(floor(x)))
 
-
+# generando una nueva grafica en base al n° de slashes
+server_data$slashes_number <- str_count(server_data$Resource, "/")
 View(server_data)
+
+ggplot(server_data, aes(x = slashes_number, y = length_Resource, color = clusters_4)) +
+  geom_point() +
+  scale_x_continuous(labels = function(x) as.integer(floor(x)))
