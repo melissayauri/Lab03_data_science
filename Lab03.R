@@ -116,38 +116,48 @@ new_data <- spread(requests_data, Response_code, Frequency)
 
 # Creando los gráficos
 
-# Gráfica 1
-ggplot(requests_data, aes(x = Method, y = Frequency, fill = Method)) + 
+# Gráfico de barras de los códigos de respuesta según el método
+ggplot(requests_data, aes(x = Method, y = Frequency, fill = Method)) +
+  # Creación del gráfico de barras
   geom_bar(stat="identity", position="dodge") +
-  scale_fill_manual(values=c("#a40b54", "#11766d", "#027fe9"), 
+  scale_fill_manual(values=c("#fa6900", "#b9030f", "#69d2e7"), 
                     labels=c("GET", "HEAD", "POST")) +
   labs(title = "Código de respuesta con el tipo de método", 
        x = "Método de solicitud", y = "Frecuencia", 
        fill = "Método") +
+  # Creando gráficos en 3 columnas
   facet_wrap(~Response_code, ncol = 3, scales = "free_y") +
-   geom_text(aes(label = ..y..), stat="identity", position=position_dodge(width=1), vjust=-0.5, size=3) +
+  # Agregando etiquetas
+  geom_text(aes(label = ..y..), stat="identity", position=position_dodge(width=1), vjust=-0.5, size=3) +
+  # Cambiando la escala del eje y
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.1), add = c(0, 10)))
  
-# Gráfica 2
-ggplot(requests_data, aes(x = Response_code, y = Frequency, fill = Method)) + 
+# Gráfico de barras del Método según el código de respuesta
+ggplot(requests_data, aes(x = Response_code, y = Frequency, fill = Method)) +
+  # Creación del gráfico de barras
   geom_bar(stat="identity") +
-  scale_fill_manual(values=c("#a40b54", "#11766d", "#027fe9"), 
+  scale_fill_manual(values=c("#fa6900", "#b9030f", "#69d2e7"), 
                     labels=c("GET", "HEAD", "POST")) +
   labs(title = "Método según el código de respuesta", 
        x = "Código de respuesta", y = "Frecuencia", 
        fill = "Método") +
+  # Creando gráficos en una columna
   facet_wrap(~Method, ncol = 1, scales = "free_y") +
+  # Agregando etiquetas
   geom_text(aes(label = ..y..), stat="identity", position=position_stack(vjust=0.5), size=3)
 
-# Gráfica 3
-ggplot(requests_data, aes(x = Method, y = Frequency, color = Response_code)) +
-  geom_point() +
-  geom_text(aes(label = Frequency), vjust = -1) +
-  labs(title = "Método de solicitud según código de respuesta", x = "Método de solicitud", y = "Frecuencia", color = "Código de respuesta") +
-  facet_grid(Response_code ~ .) +
-  ylim(0, 60000) +
-  scale_color_manual(values=c("#f70a71", "#c90a02", "#ffb145", "#74ab90", "#3a89c9","#1b325f","#f26c4f","#63203d"), 
-                     labels=c("200", "302","304","400","403","404", "500", "501"))
+# Gráfico de barras apiladas
+ggplot(requests_data, aes(x = Method, y = Frequency, fill = Response_code)) +
+  # Creación del gráfico de barras
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Gráfico de barras apiladas del Método según el Código de respuesta", fill = "Código de respuesta") +
+  xlab("Método") +
+  ylab("Frequencia") +
+  # Creando gráficos en 2 columnas
+  facet_wrap(~ Method, nrow = 2, scales = "free_y")+
+  scale_fill_manual(values =c("#4acabb", "#cbe5c0", "#fcf9c2","#edc5bd","#eb214e","#94919a","#122f51","#c6a9ac"))
+
+
 
 # Pregunta 5
 # Creando nueva columna con el número de carácteres de la columna Resource
@@ -159,26 +169,48 @@ one_hot_data <- one_hot(as.data.table(endpoints_data), sparsifyNAs = TRUE)
 # Obteniendo el kmeans
 value7_kmeans <- kmeans(one_hot_data, centers = 7)
 value4_kmeans <- kmeans(one_hot_data, centers = 4)
+
 #pregunta 6
 # Agrupamiento de 7
 server_data$clusters_7 <- as.factor(value7_kmeans$cluster)
 
 # Gráfica en base a la columna bytes y length_Resource
 ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_7)) +
+  # Creación de la gráfica scatter
   geom_point() +
-  scale_x_continuous(labels = function(x) as.integer(floor(x)))
+  # Convirtiendo la escala x en valores númericos
+  scale_x_continuous(labels = function(x) as.integer(floor(x))) +
+  labs(color = "Clusters") +
+  xlab("Bytes") +
+  ylab("N° de carácteres del Recurso") +
+  scale_color_manual(values = c("#ffb300", "#d43f5d", "#f2a772", "#e8d890","#211c33","#d83018","#17a7a8"))
 
 # Agrupamiento de 4
 server_data$clusters_4 <- as.factor(value4_kmeans$cluster)
 # Gráfica en base a la columna bytes y length_Resource
-ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_4)) +
-  geom_point() +
-  scale_x_continuous(labels = function(x) as.integer(floor(x)))
+  ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_4)) +
+    # Creación de la gráfica scatter
+    geom_point() +
+    # Convirtiendo la escala x en valores númericos
+    scale_x_continuous(labels = function(x) as.integer(floor(x))) +
+    labs(color = "Clusters") +
+    xlab("Bytes") +
+    ylab("N° de carácteres del Recurso") +
+    # Definiendo los colores
+    scale_color_manual(values = c("#122f51", "#790614", "#028f76", "#e6324b"))
 
-# generando una nueva grafica en base al n° de slashes
+# Generando una nueva grafica en base al n° de slashes
 server_data$slashes_number <- str_count(server_data$Resource, "/")
-View(server_data)
 
 ggplot(server_data, aes(x = slashes_number, y = length_Resource, color = clusters_4)) +
+  # Creación de la gráfica scatter
   geom_point() +
-  scale_x_continuous(labels = function(x) as.integer(floor(x)))
+  # Convirtiendo la escala x en valores númericos
+  scale_x_continuous(labels = function(x) as.integer(floor(x))) +
+  labs(color = "Clusters") +
+  xlab("N° de slashes") +
+  ylab("N° de carácteres del Recurso") +
+  # Definiendo los colores
+  scale_color_manual(values = c("#2b818c", "#ffc6a5", "#d14334", "#fa6900"))
+
+View(server_data)
