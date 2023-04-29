@@ -1,3 +1,18 @@
+---
+title: "Practica3"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document: default
+date: "2023-04-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r libraries, echo=FALSE,include = FALSE}
 # Importando librerías
 library(tidyr)
 library(dplyr)
@@ -7,12 +22,27 @@ library(data.table)
 library(mltools)
 library(stringr)
 library(purrr)
-library(vioplot)
+library(knitr)
 library(ggrepel)
+```
+
+### Pregunta 1
+Descomprimir el fichero comprimido que contiene los registros del servidor, y
+a partir de los datos extraídos, cargar en data frame los registros con las
+peticiones servidas.
+
+**Resolución**
+
+La resolución consta en convertir el archivo en un **data.frame()** y convertir cada uno de los datos en el tipo de dato apropiado con las funciones **as.factor()** y **as.numeric()**. Todo ello se muestra en el siguiente código.
+
+```{r server_data, echo=TRUE, warning=FALSE}
 # Importando el archivo
-server_data <- read_table("D:\\MAESTRIA-CIBERSEGURIDAD\\SEMINARIO_DATA_SCIENCE\\LABS\\Lab03_lengR\\epa-http.csv", col_names = FALSE)
+server_data <- 
+  read_table("D:\\MAESTRIA-CIBERSEGURIDAD\\SEMINARIO_DATA_SCIENCE\\LABS\\Lab03_lengR\\epa-http.csv", 
+col_names = FALSE)
 # Renonbrando los encabezados de las columnas
-colnames(server_data) <- c("Ip_address", "Date", "Method", "Resource", "Protocol", "Response_code", "Bytes")
+colnames(server_data) <- c("Ip_address", "Date", "Method", "Resource",
+                           "Protocol", "Response_code", "Bytes")
 
 # PREGUNTA 1
 # Conversión de datos
@@ -35,10 +65,30 @@ server_data$Bytes <- str_replace(server_data$Bytes, "-", "0")
 # Convirtiendo a datos númericos
 server_data$Bytes <- as.numeric(server_data$Bytes)
 
+```
+## Pregunta 2
+
+Identificar el número único de usuarios que han interactuado directamente con
+el servidor de forma segregada según si los usuarios han tenido algún tipo de
+error en las distintas peticiones ofrecidas por el servidor.
+
+**Resolución**
+
+La resolución consta de buscar los usuarios únicos con su respectivo código de respuesta, para ello se realiza un filtro solo de valores únicos en de la columna **Ip_address** con el valor de la columna **Response_code** con la función **table** y **filter()**. Luego según el tipo de código se guarda la tabla en una variable para seguidamente realizar el conteo de los usuarios con la función **nrow()**. El resultado es el siguiente:
+
+|     Code   | 200  | 302 | 304 | 400 | 403 | 404 | 500 | 501 |
+|------------|------|-----|-----|-----|-----|-----|-----|-----|
+|  Usuarios  |2296  | 970 | 505 |  1  |  5  | 152 | 29  |  11 |
+
+Todo lo mencionado se realizó con el siguiente código.
+
+
+```{r n_users, echo=TRUE}
 # Pregunta 2
 
 # Creando la tabla con las columnas Ip_address y Response_code
-address_table<- data.frame(Ip_address = server_data$Ip_address, Response_code = server_data$Response_code) 
+address_table<- data.frame(Ip_address = server_data$Ip_address, 
+                           Response_code = server_data$Response_code) 
 # Tabla de Frecuencias de la columna Ip_address con Response_code
 frequency <- as.data.frame(table(address_table))
 # Obteniendo los datos existentes 
@@ -53,31 +103,50 @@ code_data<- map(value_codes, ~address_data[address_data$Response_code == .x, ])
 # Cada tabla según el código de respuesta es guardada en cada variable como data_code_200
 names(code_data) <- paste0("data_code_", value_codes)
 # Hallando el n° de usuarios según el código de respuesta
-code200_users <- nrow(data_code_200)
+code200_users <- nrow(code_data$data_code_200)
 code200_users
 # Hay 2296 usuarios con el código de respuesta 200
-code302_users <- nrow(data_code_302)
+code302_users <- nrow(code_data$data_code_302)
 code302_users
 # Hay 970 usuarios con el código de respuesta 302
-code304_users <- nrow(data_code_304)
+code304_users <- nrow(code_data$data_code_304)
 code304_users
 # Hay 505 usuarios con el código de respuesta 304 
-code400_users <- nrow(data_code_400)
+code400_users <- nrow(code_data$data_code_400)
 code400_users
 # Hay 1 usuario con el código de respuesta 400
-code403_users <- nrow(data_code_403)
+code403_users <- nrow(code_data$data_code_403)
 code403_users
 # Hay 5 usuarios con el código de respuesta 403
-code404_users <- nrow(data_code_404)
+code404_users <- nrow(code_data$data_code_404)
 code404_users
 # Hay 152 usuarios con el código de respuesta 404
-code500_users <- nrow(data_code_500)
+code500_users <- nrow(code_data$data_code_500)
 code500_users
 # Hay 29 usuarios con el código de respuesta 500
-code501_users <- nrow(data_code_501)
+code501_users <- nrow(code_data$data_code_501)
 code501_users
 # Hay 11 usuarios con el código de respuesta 501
+```
 
+## Pregunta 3
+
+Analizar los distintos tipos de peticiones HTTP (GET, POST, PUT, DELETE)
+gestionadas por el servidor, identificando la frecuencia de cada una de estas.
+Repetir el análisis, esta vez filtrando previamente aquellas peticiones
+correspondientes a recursos ofrecidos de tipo imagen.
+
+**Resolución**
+
+La primera parte consta en hallar el número de repeticiones según el tipo de método, todo ello se realizó con la función **table()** y se obtuvo el siguiente resultado:
+
+|   Método   |   GET  | HEAD | POST |
+|------------|--------|------|------|
+| Frequencia | 46020  | 106  | 1622 | 
+
+El resulatdo presente se halló con el siguiente código.
+
+```{r freq_method, echo=TRUE}
 # Pregunta 3
 # Hallando el n° de repeticiones según el método GET, POST, HEAD (columna Method)
 method_frequency <- table(server_data$Method)
@@ -88,22 +157,51 @@ print(method_data)
 # Método GET (46020 repeticiones)
 # Método HEAD (106 repeticiones)
 # Método POST (1622 repeticiones)
+```
 
+La segunda parte de esta pregunta es hallar la frecuencia de los métodos previamente discriminando los recursos tipo imagen, para ello se filtra todos los recursos que no son imagenes con la función **filter()** y **grepl()**. Luego para hallar el n° de repeticiones se utiliza la función **table()**. El resultado es el siguiente:
+
+
+|   Método   |   GET  | HEAD | POST |
+|------------|--------|------|------|
+| Frequencia | 23841  | 50   | 1416 | 
+
+Lo mencionado se realizó con el siguiente código.
+
+```{r freq_noimage, echo=TRUE}
 # Hallando el n° de repeticiones descartando los recursos tipo imagen
-# Filtrando los recursos que no contengan extensiones tipo imagen, discriminando mayúsculas y minusculas de las extensiones
+# Filtrando los recursos que no contengan extensiones tipo imagen, 
+# discriminando mayúsculas y minusculas de las extensiones
 noimages_data <- filter(server_data, !grepl("(?i)\\.(gif|jpg|jpeg|png|bmp)$", Resource))
-nrow(noimages_data)
-nrow(server_data)
 # Hallando el n° de repeticiones del filtro anterior
 method_frequency2 <- table(noimages_data$Method)
 # Mostrando la tabla
-method2_data <- data.frame(Method = names(method_frequency2), Frequency = as.vector(method_frequency2))
+method2_data <- data.frame(Method = names(method_frequency2), 
+                           Frequency = as.vector(method_frequency2))
 # Muestra de los resultados
 print(method2_data)
 #    GET     23841
 #   HEAD        50
 #   POST      1416
+```
 
+## Pregunta 4
+
+Generar un gráfico que permita visualizar las respuestas del servidor, es decir,
+la distribución de peticiones según el código de respuesta de esta. Probad
+distintos tipos de gráficos (por lo menos 2 distintos e incluid estos en el
+documento RMarkdown).
+
+**Resolución**
+
+En este caso se eligio dos tipos de gráficos que son los siguientes:
+
+* Graáficos de barras agrupadas y apiladas
+* Gráfico de torta
+
+Estas dos gráficas son las más adecuadas para una variable categorica, que en este caso es la columna "Response_code" porque con estas gráficas los datos se representan de manera clara y se logra visualizar la comparación entre las frecuencias a través de las barras y segmentos circulares
+
+```{r graphics, echo=TRUE}
 # Pregunta 4
 
 # Agrupamos los datos de la columna Response_code y hallamos la frequencia.
@@ -145,62 +243,18 @@ ggplot(response_code_data, aes(x = "", y = Freq, fill = Response_code)) +
                    show.legend = FALSE, color = "white", size = 4) 
 
 
+```
 
+```{r cars}
+summary(cars)
+```
 
-# Pregunta 5
-# Creando nueva columna con el número de carácteres de la columna Resource
-server_data$length_Resource <-  str_length(server_data$Resource)
-# Creando una nueva tabla con las columnas tipo factor
-endpoints_data <- server_data[, c("Method", "Response_code", "Protocol")]
-# Convirtiendo datos tipo factor a datos binarios
-one_hot_data <- one_hot(as.data.table(endpoints_data), sparsifyNAs = TRUE)
-# Obteniendo el kmeans
-value7_kmeans <- kmeans(one_hot_data, centers = 7)
-value4_kmeans <- kmeans(one_hot_data, centers = 4)
+## Including Plots
 
-#pregunta 6
-# Agrupamiento de 7
-server_data$clusters_7 <- as.factor(value7_kmeans$cluster)
+You can also embed plots, for example:
 
-# Gráfica en base a la columna bytes y length_Resource
-ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_7)) +
-  # Creación de la gráfica scatter
-  geom_point() +
-  # Convirtiendo la escala x en valores númericos
-  scale_x_continuous(labels = function(x) as.integer(floor(x))) +
-  labs(color = "Clusters") +
-  xlab("Bytes") +
-  ylab("N° de carácteres del Recurso") +
-  scale_color_manual(values = c("#ffb300", "#d43f5d", "#f2a772", "#e8d890","#211c33","#d83018","#17a7a8"))
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
 
-# Agrupamiento de 4
-server_data$clusters_4 <- as.factor(value4_kmeans$cluster)
-# Gráfica en base a la columna bytes y length_Resource
-  ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_4)) +
-    # Creación de la gráfica scatter
-    geom_point() +
-    # Convirtiendo la escala x en valores númericos
-    scale_x_continuous(labels = function(x) as.integer(floor(x))) +
-    labs(color = "Clusters") +
-    xlab("Bytes") +
-    ylab("N° de carácteres del Recurso") +
-    # Definiendo los colores
-    scale_color_manual(values = c("#122f51", "#790614", "#028f76", "#e6324b"))
-
-# Generando una nueva grafica en base al n° de slashes
-server_data$slashes_number <- str_count(server_data$Resource, "/")
-
-ggplot(server_data, aes(x = slashes_number, y = length_Resource, color = clusters_4)) +
-  # Creación de la gráfica scatter
-  geom_point() +
-  # Convirtiendo la escala x en valores númericos
-  scale_x_continuous(labels = function(x) as.integer(floor(x))) +
-  labs(color = "Clusters") +
-  xlab("N° de slashes") +
-  ylab("N° de carácteres del Recurso") +
-  # Definiendo los colores
-  scale_color_manual(values = c("#2b818c", "#ffc6a5", "#d14334", "#fa6900"))
-
-
-
-View(server_data)
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
