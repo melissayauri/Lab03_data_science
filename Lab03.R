@@ -146,7 +146,6 @@ ggplot(response_code_data, aes(x = "", y = Freq, fill = Response_code)) +
 
 
 
-
 # Pregunta 5
 # Creando nueva columna con el número de carácteres de la columna Resource
 server_data$length_Resource <-  str_length(server_data$Resource)
@@ -154,12 +153,20 @@ server_data$length_Resource <-  str_length(server_data$Resource)
 endpoints_data <- server_data[, c("Method", "Response_code", "Protocol")]
 # Convirtiendo datos tipo factor a datos binarios
 one_hot_data <- one_hot(as.data.table(endpoints_data), sparsifyNAs = TRUE)
+
 # Obteniendo el kmeans
+set.seed(50) # Fijando los centroides iniciales
+# Agrupamiento de 7
 value7_kmeans <- kmeans(one_hot_data, centers = 7)
+#set.seed(150) # Fijando los centroides iniciales
+# Agrupamiento de 4
 value4_kmeans <- kmeans(one_hot_data, centers = 4)
+#set.seed(100)# Fijando los centroides iniciales
+# Agrupamiento de 3
+value9_kmeans <- kmeans(one_hot_data, centers = 9)
 
 #pregunta 6
-# Agrupamiento de 7
+# Agrupamiento de 7, se convierte en factor para la separación de cada cluster
 server_data$clusters_7 <- as.factor(value7_kmeans$cluster)
 
 # Gráfica en base a la columna bytes y length_Resource
@@ -171,10 +178,17 @@ ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_7)) +
   labs(color = "Clusters") +
   xlab("Bytes") +
   ylab("N° de carácteres del Recurso") +
-  scale_color_manual(values = c("#ffb300", "#d43f5d", "#f2a772", "#e8d890","#211c33","#d83018","#17a7a8"))
+  scale_color_manual(values = c("#ffb300", "#d43f5d", "#f2a772", "#e8d890","#211c33","#d83018","#17a7a8"),
+                     # especificando el orden de los colores
+                     breaks = c(1, 2, 3, 4, 5, 6, 7),
+                     labels = c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5", "Cluster 6", "Cluster 7")
+  ) +
+  theme(legend.text=element_text(size=12))
+
 
 # Agrupamiento de 4
 server_data$clusters_4 <- as.factor(value4_kmeans$cluster)
+
 # Gráfica en base a la columna bytes y length_Resource
   ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_4)) +
     # Creación de la gráfica scatter
@@ -185,21 +199,29 @@ server_data$clusters_4 <- as.factor(value4_kmeans$cluster)
     xlab("Bytes") +
     ylab("N° de carácteres del Recurso") +
     # Definiendo los colores
-    scale_color_manual(values = c("#122f51", "#790614", "#028f76", "#e6324b"))
+    scale_color_manual(values = c("#005bc5", "#790614", "#028f76", "#520647"),
+                       breaks = c(1, 2, 3, 4),
+                       labels = c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4")) +
+    theme(legend.text=element_text(size=12))
 
+# Agrupamiento de 9
+server_data$clusters_9 <- as.factor(value9_kmeans$cluster)
 # Generando una nueva grafica en base al n° de slashes
 server_data$slashes_number <- str_count(server_data$Resource, "/")
 
-ggplot(server_data, aes(x = slashes_number, y = length_Resource, color = clusters_4)) +
+# Gráfica del nº de slashes del Recurso con el n° de carácteres del Recurso
+ggplot(server_data, aes(x = slashes_number, y = length_Resource, color = clusters_9)) +
   # Creación de la gráfica scatter
   geom_point() +
   # Convirtiendo la escala x en valores númericos
   scale_x_continuous(labels = function(x) as.integer(floor(x))) +
   labs(color = "Clusters") +
-  xlab("N° de slashes") +
+  xlab("N° de slashes del Recurso") +
   ylab("N° de carácteres del Recurso") +
   # Definiendo los colores
-  scale_color_manual(values = c("#2b818c", "#ffc6a5", "#d14334", "#fa6900"))
+  scale_color_manual(values = c("#2b818c", "#ffc6a5", "#fa6900", "#028f76", "#6d0839","#790614","#e4d829", "#fe59c2","#8a8780"),
+                     breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9),
+                     labels = c("Cluster 1", "Cluster 2", "Cluster 3","Cluster 4", "Cluster 5", "Cluster 6","Cluster 7", "Cluster 8", "Cluster 9"))
 
 
 

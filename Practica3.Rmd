@@ -25,6 +25,10 @@ library(purrr)
 library(knitr)
 library(ggrepel)
 ```
+## Integrantes
+
+* Melissa Yauri
+* Antonio Atanacio
 
 ### Pregunta 1
 Descomprimir el fichero comprimido que contiene los registros del servidor, y
@@ -192,7 +196,7 @@ la distribución de peticiones según el código de respuesta de esta. Probad
 distintos tipos de gráficos (por lo menos 2 distintos e incluid estos en el
 documento RMarkdown).
 
-**Resolución**
+**Resolución:**
 
 En este caso se eligio dos tipos de gráficos que son los siguientes:
 
@@ -211,7 +215,9 @@ response_code_data <- summarize(group_by(server_data, Response_code), Freq = n()
 ggplot(response_code_data, aes(x = Response_code, y = Freq, fill = Response_code)) +
   # Creación del gráfico de barras
   geom_bar(stat = "identity") +
-  scale_fill_manual(values = c("#00686c", "#32c2b9", "#edecb3", "#fad928", "#ff9915", "#9e1e4c","#04394e","#703d6f"),name = "Códigos de respuesta") +
+  scale_fill_manual(values = c("#00686c", "#32c2b9", "#edecb3", "#fad928", 
+                               "#ff9915", "#9e1e4c","#04394e","#703d6f"),
+                    name = "Códigos de respuesta") +
   # Etiquetas del gráfico
   labs(x = "Códigos de respuesta", y = "n° de peticiones", 
        title = "Códigos de respuesta de las peticiones") +
@@ -224,7 +230,9 @@ ggplot(response_code_data, aes(x = Response_code, y = Freq, fill = Response_code
 ggplot(response_code_data, aes(x = 1, y = Freq, fill = Response_code)) + 
   # Creación del gráfico de barras
   geom_bar(stat = "identity") +
-  scale_fill_manual(values = c("#00686c", "#32c2b9", "#edecb3", "#fad928", "#ff9915", "#9e1e4c","#04394e","#703d6f"),name = "Códigos de respuesta") +
+  scale_fill_manual(values = c("#00686c", "#32c2b9", "#edecb3", "#fad928",
+                               "#ff9915", "#9e1e4c","#04394e","#703d6f"),
+                    name = "Códigos de respuesta") +
   # Etiquetas del gráfico
   xlab("") +
   ylab("n° de peticiones") +
@@ -236,7 +244,9 @@ ggplot(response_code_data, aes(x = "", y = Freq, fill = Response_code)) +
   geom_bar(stat = "identity", width = 1) +
   coord_polar("y", start = 0) +
   theme_void() +
-  scale_fill_manual(values =  c("#00686c", "#32c2b9", "#dc6378", "#fad928", "#ff9915", "#9e1e4c","#04394e","#c90a02"),name = "Códigos de respuesta") +
+  scale_fill_manual(values =  c("#00686c", "#32c2b9", "#dc6378", "#fad928",
+                                "#ff9915", "#9e1e4c","#04394e","#c90a02"),
+                    name = "Códigos de respuesta") +
   labs(title = "n° de peticiones según el código de respuesta") +
   # Incorporando los valores con la libreria ggrepel
   geom_label_repel(aes(label = Freq, x = 2.2, y = cumsum(Freq) - 0.5 * Freq),
@@ -245,16 +255,138 @@ ggplot(response_code_data, aes(x = "", y = Freq, fill = Response_code)) +
 
 ```
 
-```{r cars}
-summary(cars)
+## Pregunta 5
+
+Utilizando un algoritmo de aprendizaje no supervisado, realizad un análisis de
+clústering con k-means para los datos del servidor.
+
+**Resolución:**
+
+Se agrega una nueva columna llamada **length_Resource** para el n° de carácteres de la columna **Resource**. Además se realiza la conversión a binarios a través de la función **one_hot** de las columnas que tiene datos tipo factor como Method, Response_code y Protocol. En base a ello se aplica la función **kmeans()** para realizar el agrupamiento. Lo mencionado se realizó con el siguiente código.
+
+```{r clusters, echo=TRUE}
+# Pregunta 5
+# Creando nueva columna con el número de carácteres de la columna Resource
+server_data$length_Resource <-  str_length(server_data$Resource)
+# Creando una nueva tabla con las columnas tipo factor
+endpoints_data <- server_data[, c("Method", "Response_code", "Protocol")]
+# Convirtiendo datos tipo factor a datos binarios
+one_hot_data <- one_hot(as.data.table(endpoints_data), sparsifyNAs = TRUE)
+
+# Obteniendo el kmeans
+set.seed(50) # Fijando los centroides iniciales
+# Agrupamiento de 7
+value7_kmeans <- kmeans(one_hot_data, centers = 7)
+#set.seed(150) # Fijando los centroides iniciales
+# Agrupamiento de 4
+value4_kmeans <- kmeans(one_hot_data, centers = 4)
+#set.seed(100)# Fijando los centroides iniciales
+# Agrupamiento de 3
+value9_kmeans <- kmeans(one_hot_data, centers = 9)
+
 ```
 
-## Including Plots
+## Pregunta 6
 
-You can also embed plots, for example:
+Representad visualmente en gráficos de tipo scatter plot el resultado de
+vuestros clústering.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+**Resolución:**
+
+En esta pregunta se realiza las siguientes gráficas:
+
+* La primera gráfica es en base a los 7 centros con las columnas length_Resource y Bytes. En esta gráfica se aprecia lo siguiente:
+
+  - En el rango de 0 bytes a lo largo de todo el eje Y del n° de carácteres del recurso se      aprecia que existe mayor cantidad del cluster 2.
+  - En ese mismo rango pero en el eje Y por debajo del valor 200, existe un cantidad regular     del cluster 1 y una mínima cantidad de cluster 5.
+  - En cambio en el rango entre 200 y 300 en el eje Y sólo existe una sola cantidad del         cluster 7.
+  - Finalmente, en el eje Y entre el rango 0 y 100 y a lo largo de todo el eje x se             visualiza que el cluster 2 va disminuyendo.
+
+```{r clusters7_graphics, warning=FALSE, echo=TRUE}
+#pregunta 6
+
+# Agrupamiento de 7, se convierte en factor para la separación de cada cluster
+server_data$clusters_7 <- as.factor(value7_kmeans$cluster)
+
+# Gráfica en base a la columna bytes y length_Resource
+ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_7)) +
+  # Creación de la gráfica scatter
+  geom_point() +
+  # Convirtiendo la escala x en valores númericos
+  scale_x_continuous(labels = function(x) as.integer(floor(x))) +
+  labs(color = "Clusters") +
+  xlab("Bytes") +
+  ylab("N° de carácteres del Recurso") +
+  scale_color_manual(
+    values = c("#ffb300", "#d43f5d", "#f2a772", "#e8d890",
+               "#211c33","#d83018","#17a7a8"),
+                     # especificando el orden de los colores
+                     breaks = c(1, 2, 3, 4, 5, 6, 7),
+                     labels = c("Cluster 1", "Cluster 2", "Cluster 3", 
+                                "Cluster 4", "Cluster 5", "Cluster 6", "Cluster 7")
+  ) +
+  theme(legend.text=element_text(size=12))
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+* La segunda gráfica es en base a los 4 centros con las columnas length_Resource y Bytes. En esta gráfica se aprecia lo siguiente:
+
+  - En el eje X, en el valor 0 bytes se aprecia una gran cantidad de cluster 1 a lo 
+  largo del eje Y del n° de carácteres del recurso.
+  - En cambio a lo largo del eje X (Bytes) se aprecia que el cluster 1 va disminuyendo.
+  - Por otro lado, en el intermedio del rango de 0 a 200 se aprecia que hay una pequeña         cantidad de cluster 4 y por debajo de ese intermedio también hay una pequeña cantidad de     cluster 2.
+
+
+```{r clusters4_graphics, warning=FALSE, echo=TRUE}
+
+# Agrupamiento de 4
+server_data$clusters_4 <- as.factor(value4_kmeans$cluster)
+
+# Gráfica en base a la columna bytes y length_Resource
+  ggplot(server_data, aes(x = Bytes, y = length_Resource, color = clusters_4)) +
+    # Creación de la gráfica scatter
+    geom_point() +
+    # Convirtiendo la escala x en valores númericos
+    scale_x_continuous(labels = function(x) as.integer(floor(x))) +
+    labs(color = "Clusters") +
+    xlab("Bytes") +
+    ylab("N° de carácteres del Recurso") +
+    # Definiendo los colores
+    scale_color_manual(
+      values = c("#005bc5", "#790614", "#028f76", "#520647"),
+      breaks = c(1, 2, 3, 4),
+      labels = c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4")) +
+    theme(legend.text=element_text(size=12))
+```
+
+* Esta 3ra gráfica es en base al n° de slashes del recurso (eje x) y el n° de carácteres del recurso con 9 centros. En ello se aprecia lo siguiente:
+  - En todo el gráfico se aprecia que el cluster 3 es el que predomina, sin embargo en los      intermedios de los rangos 2-5 y 5 -7 hay mayor cantidad de cluster 3 a lo largo del eje     Y.
+  - Por otro lado, existen pequeñas cantidades del Cluster 5 entre el rango de 0 a 5 y          sobrepasando el valor de 7 en el eje X, cada uno de estos estan por debajo del valor 200     del eje Y.
+  - Y en ese mismo valor del eje Y, existen pequeñas cantidades del cluster 7 pero en el        rango de 5 a más en el eje X.
+  - Finalmente existe una mínima cantidad del cluster 8 entre los rangos de 2 a 5 del eje X     pero que no sobrepasan el valor de 100 en el eje Y.
+  
+```{r clusters9_graphics, warning=FALSE, echo=TRUE}
+# Agrupamiento de 9
+server_data$clusters_9 <- as.factor(value9_kmeans$cluster)
+# Generando una nueva grafica en base al n° de slashes
+server_data$slashes_number <- str_count(server_data$Resource, "/")
+
+# Gráfica del nº de slashes del Recurso con el n° de carácteres del Recurso
+ggplot(server_data, aes(x = slashes_number, y = length_Resource, color = clusters_9)) +
+  # Creación de la gráfica scatter
+  geom_point() +
+  # Convirtiendo la escala x en valores númericos
+  scale_x_continuous(labels = function(x) as.integer(floor(x))) +
+  labs(color = "Clusters") +
+  xlab("N° de slashes del Recurso") +
+  ylab("N° de carácteres del Recurso") +
+  # Definiendo los colores
+  scale_color_manual(
+    values = c("#2b818c", "#ffc6a5", "#fa6900", "#028f76",
+               "#6d0839","#110303","#e4d829", "#fe59c2","#8a8780"),
+    breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9),
+    labels = c("Cluster 1", "Cluster 2", "Cluster 3","Cluster 4", 
+               "Cluster 5", "Cluster 6","Cluster 7", "Cluster 8", "Cluster 9"))
+
+
+```
